@@ -5,7 +5,6 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  redirect,
 } from "@tanstack/react-router";
 import { Layout } from "./components/Layout";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
@@ -14,6 +13,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { MeldingDetail } from "./pages/MeldingDetail";
 import { MijnMeldingen } from "./pages/MijnMeldingen";
 import { NieuweSchademelding } from "./pages/NieuweSchademelding";
+import { NieuweStoring } from "./pages/NieuweStoring";
 import { VoertuigenBeheer } from "./pages/VoertuigenBeheer";
 
 // Root route
@@ -76,6 +76,16 @@ const meldenRoute = createRoute({
   ),
 });
 
+const storingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/storing",
+  component: () => (
+    <AuthGuard>
+      <NieuweStoring />
+    </AuthGuard>
+  ),
+});
+
 const meldingDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/meldingen/$id",
@@ -110,6 +120,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
   meldenRoute,
+  storingRoute,
   meldingDetailRoute,
   voertuigenRoute,
   mijnMeldingenRoute,

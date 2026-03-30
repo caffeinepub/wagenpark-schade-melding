@@ -26,6 +26,7 @@ import {
   ClipboardX,
   Eye,
   Plus,
+  Wrench,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -114,12 +115,24 @@ export function Dashboard() {
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-destructive" />
             )}
           </button>
-          <Button asChild data-ocid="dashboard.new_report.primary_button">
-            <Link to="/melden">
-              <Plus size={16} className="mr-1.5" />
-              Nieuwe Schademelding
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button asChild data-ocid="dashboard.new_report.primary_button">
+              <Link to="/melden">
+                <Plus size={16} className="mr-1.5" />
+                Schademelding
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              data-ocid="dashboard.new_storing.secondary_button"
+            >
+              <Link to="/storing">
+                <Plus size={16} className="mr-1.5" />
+                Storing / Mankement
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -162,7 +175,7 @@ export function Dashboard() {
         <div className="p-4 border-b border-border">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
             <h2 className="text-base font-semibold text-foreground">
-              Open Schademeldingen
+              Open Meldingen
             </h2>
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <Input
@@ -217,7 +230,7 @@ export function Dashboard() {
                     Voertuig
                   </TableHead>
                   <TableHead className="text-xs font-semibold">
-                    Type Schade
+                    Type Melding
                   </TableHead>
                   <TableHead className="text-xs font-semibold hidden md:table-cell">
                     Omschrijving
@@ -246,7 +259,15 @@ export function Dashboard() {
                       {getVehicleNumberById(report.vehicleId.toString())}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {report.damageType}
+                      <span className="flex items-center gap-1.5">
+                        {report.damageType.startsWith("[STORING]") && (
+                          <Wrench
+                            size={13}
+                            className="text-amber-500 shrink-0"
+                          />
+                        )}
+                        {report.damageType.replace("[STORING] ", "")}
+                      </span>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground max-w-xs hidden md:table-cell">
                       <span className="line-clamp-1">{report.description}</span>
