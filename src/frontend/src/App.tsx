@@ -8,10 +8,13 @@ import {
 } from "@tanstack/react-router";
 import { Layout } from "./components/Layout";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
+import { Beheer } from "./pages/Beheer";
 import { Dashboard } from "./pages/Dashboard";
 import { LoginPage } from "./pages/LoginPage";
 import { MeldingDetail } from "./pages/MeldingDetail";
 import { MijnMeldingen } from "./pages/MijnMeldingen";
+import { NieuweMankement } from "./pages/NieuweMankement";
+import { NieuweRondje } from "./pages/NieuweRondje";
 import { NieuweSchademelding } from "./pages/NieuweSchademelding";
 import { NieuweStoring } from "./pages/NieuweStoring";
 import { VoertuigenBeheer } from "./pages/VoertuigenBeheer";
@@ -86,6 +89,26 @@ const storingRoute = createRoute({
   ),
 });
 
+const mankementRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/mankement",
+  component: () => (
+    <AuthGuard>
+      <NieuweMankement />
+    </AuthGuard>
+  ),
+});
+
+const rondjeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/rondje",
+  component: () => (
+    <AuthGuard>
+      <NieuweRondje />
+    </AuthGuard>
+  ),
+});
+
 const meldingDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/meldingen/$id",
@@ -116,14 +139,27 @@ const mijnMeldingenRoute = createRoute({
   ),
 });
 
+const beheerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/beheer",
+  component: () => (
+    <AuthGuard>
+      <Beheer />
+    </AuthGuard>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
   meldenRoute,
   storingRoute,
+  mankementRoute,
+  rondjeRoute,
   meldingDetailRoute,
   voertuigenRoute,
   mijnMeldingenRoute,
+  beheerRoute,
 ]);
 
 const router = createRouter({ routeTree });

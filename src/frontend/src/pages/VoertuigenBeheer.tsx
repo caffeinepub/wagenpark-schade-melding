@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,12 +30,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2, Package, Plus, Shield, Truck } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Link,
+  Loader2,
+  Package,
+  Plus,
+  Shield,
+  Truck,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
   useAddVehicle,
+  useGenerateInviteCode,
+  useGetInviteCodes,
   useIsAdmin,
   useRemoveVehicle,
 } from "../hooks/useQueries";
@@ -44,11 +56,16 @@ export function VoertuigenBeheer() {
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const addVehicle = useAddVehicle();
   const removeVehicle = useRemoveVehicle();
+  const generateInviteCode = useGenerateInviteCode();
+  const { data: inviteCodes = [], isLoading: codesLoading } =
+    useGetInviteCodes();
   const navigate = useNavigate();
 
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [vehicleType, setVehicleType] = useState("");
   const [vehicles, setVehicles] = useState(() => getCachedVehicles());
+  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const refreshVehicles = () => setVehicles(getCachedVehicles());
 
@@ -79,6 +96,29 @@ export function VoertuigenBeheer() {
       refreshVehicles();
     } catch {
       toast.error("Fout bij verwijderen voertuig");
+    }
+  };
+
+  const handleGenerateInvite = async () => {
+    try {
+      const code = await generateInviteCode.mutateAsync();
+      const url = `${window.location.origin}/?invite=${code}`;
+      setGeneratedUrl(url);
+      toast.success("Uitnodigingslink aangemaakt");
+    } catch {
+      toast.error("Fout bij aanmaken uitnodigingslink");
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!generatedUrl) return;
+    try {
+      await navigator.clipboard.writeText(generatedUrl);
+      setCopied(true);
+      toast.success("Link gekopieerd");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Kopiëren mislukt");
     }
   };
 
@@ -277,6 +317,152 @@ export function VoertuigenBeheer() {
           )}
         </CardContent>
       </Card>
+
+      {/* Invite links section */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <Card className="shadow-card border-border">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Link size={16} />
+              Uitnodigingslinks
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Genereer een uitnodigingslink om collega's toegang te geven tot
+              WagenPark. Deel de link via WhatsApp, e-mail of een ander kanaal.
+            </p>
+
+            <Button
+              onClick={handleGenerateInvite}
+              disabled={generateInviteCode.isPending}
+              data-ocid="voertuigen.invite.primary_button"
+            >
+              {generateInviteCode.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Link size={16} className="mr-2" />
+              )}
+              Genereer uitnodigingslink
+            </Button>
+
+            {generatedUrl && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-2"
+              >
+                <Label>Uitnodigingslink</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={generatedUrl}
+                    readOnly
+                    className="font-mono text-xs"
+                    data-ocid="voertuigen.invite.input"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopy}
+                    data-ocid="voertuigen.invite.secondary_button"
+                  >
+                    {copied ? (
+                      <Check size={16} className="text-green-500" />
+                    ) : (
+                      <Copy size={16} />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Deze link kan eenmalig gebruikt worden. Kopieer en deel hem
+                  met de collega die toegang nodig heeft.
+                </p>
+              </motion.div>
+            )}
+
+            {/* Invite codes table */}
+            <div className="pt-2">
+              <h3 className="text-sm font-semibold mb-3">
+                Aangemaakt uitnodigingslinks
+              </h3>
+              {codesLoading ? (
+                <div
+                  className="flex items-center gap-2 text-muted-foreground text-sm"
+                  data-ocid="voertuigen.invite.loading_state"
+                >
+                  <Loader2 size={14} className="animate-spin" />
+                  Laden...
+                </div>
+              ) : inviteCodes.length === 0 ? (
+                <div
+                  className="flex flex-col items-center py-8 text-muted-foreground"
+                  data-ocid="voertuigen.invite.empty_state"
+                >
+                  <Link size={28} className="mb-2 opacity-30" />
+                  <p className="text-sm">
+                    Nog geen uitnodigingslinks aangemaakt
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead className="text-xs font-semibold">
+                        Code
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold">
+                        Aangemaakt
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold">
+                        Status
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {inviteCodes.map((ic, idx) => (
+                      <TableRow
+                        key={ic.code}
+                        data-ocid={`voertuigen.invite.item.${idx + 1}`}
+                      >
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {ic.code.slice(0, 8)}...
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {new Date(
+                            Number(ic.created) / 1_000_000,
+                          ).toLocaleDateString("nl-NL", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          {ic.used ? (
+                            <Badge variant="secondary">Gebruikt</Badge>
+                          ) : (
+                            <Badge
+                              variant="default"
+                              className="bg-green-500/15 text-green-700 hover:bg-green-500/20 border-green-500/30"
+                            >
+                              Beschikbaar
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

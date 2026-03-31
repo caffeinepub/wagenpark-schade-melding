@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  CategoryStat,
   DamageReport,
   DamageReportInput,
+  InspectionRound,
+  InspectionRoundInput,
+  InviteCode,
   UserRole,
   Vehicle,
 } from "../backend.d";
@@ -179,5 +183,92 @@ export function useSaveCallerUserProfile() {
       const principalId = identity?.getPrincipal().toString();
       qc.invalidateQueries({ queryKey: ["currentUserProfile", principalId] });
     },
+  });
+}
+
+export function useGenerateInviteCode() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<string> => {
+      if (!actor) throw new Error("no actor");
+      return (actor as any).generateInviteCode();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["inviteCodes"] }),
+  });
+}
+
+export function useRedeemInviteCode() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async (code: string): Promise<void> => {
+      if (!actor) throw new Error("no actor");
+      return (actor as any).redeemInviteCode(code);
+    },
+  });
+}
+
+export function useGetInviteCodes() {
+  const { actor, isFetching } = useActor();
+  return useQuery<InviteCode[]>({
+    queryKey: ["inviteCodes"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return (actor as any).getInviteCodes();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// Inspection Round hooks
+export function useAddInspectionRound() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: InspectionRoundInput) => {
+      if (!actor) throw new Error("no actor");
+      return (actor as any).addInspectionRound(input);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["allInspectionRounds"] });
+      qc.invalidateQueries({ queryKey: ["myInspectionRounds"] });
+      qc.invalidateQueries({ queryKey: ["inspectionStats"] });
+    },
+  });
+}
+
+export function useGetAllInspectionRounds() {
+  const { actor, isFetching } = useActor();
+  return useQuery<InspectionRound[]>({
+    queryKey: ["allInspectionRounds"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return (actor as any).getAllInspectionRounds();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetMyInspectionRounds() {
+  const { actor, isFetching } = useActor();
+  return useQuery<InspectionRound[]>({
+    queryKey: ["myInspectionRounds"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return (actor as any).getMyInspectionRounds();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetInspectionStats() {
+  const { actor, isFetching } = useActor();
+  return useQuery<CategoryStat[]>({
+    queryKey: ["inspectionStats"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return (actor as any).getInspectionStats();
+    },
+    enabled: !!actor && !isFetching,
   });
 }

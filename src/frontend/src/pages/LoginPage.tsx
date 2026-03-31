@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,15 +10,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2, Shield, Truck } from "lucide-react";
+import { Loader2, Mail, Shield, Truck } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useGetCallerUserProfile,
+  useRedeemInviteCode,
   useSaveCallerUserProfile,
 } from "../hooks/useQueries";
+import { getUrlParameter } from "../utils/urlParams";
 
 export function LoginPage() {
   const { login, loginStatus, identity } = useInternetIdentity();
@@ -27,22 +30,41 @@ export function LoginPage() {
     isLoading: profileLoading,
   } = useGetCallerUserProfile();
   const saveProfile = useSaveCallerUserProfile();
+  const redeemInviteCode = useRedeemInviteCode();
   const [wagennummer, setWagennummer] = useState("");
   const [step, setStep] = useState<"login" | "setup">("login");
+  const [inviteCode] = useState<string | null>(() => getUrlParameter("invite"));
   const navigate = useNavigate();
+  const hasProcessed = useRef(false);
 
   const isLoggingIn = loginStatus === "logging-in";
   const isAuthenticated = !!identity;
 
   useEffect(() => {
-    if (isAuthenticated && isFetched) {
+    if (!isAuthenticated || !isFetched || hasProcessed.current) return;
+    hasProcessed.current = true;
+
+    const redeem = inviteCode
+      ? redeemInviteCode.mutateAsync(inviteCode).catch(() => {
+          toast.error("Uitnodigingslink is ongeldig of al gebruikt.");
+        })
+      : Promise.resolve();
+
+    redeem.then(() => {
       if (profile !== null) {
         navigate({ to: "/" });
       } else {
         setStep("setup");
       }
-    }
-  }, [isAuthenticated, isFetched, profile, navigate]);
+    });
+  }, [
+    isAuthenticated,
+    isFetched,
+    inviteCode,
+    redeemInviteCode,
+    profile,
+    navigate,
+  ]);
 
   const handleLogin = async () => {
     try {
@@ -76,6 +98,22 @@ export function LoginPage() {
             Schadebeheer systeem
           </p>
         </div>
+
+        {inviteCode && step === "login" && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4"
+          >
+            <Alert className="border-primary/30 bg-primary/5">
+              <Mail size={16} className="text-primary" />
+              <AlertDescription className="text-sm">
+                <span className="font-semibold">Je bent uitgenodigd!</span> Log
+                in om toegang te krijgen tot WagenPark.
+              </AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
 
         <Card className="shadow-card border-border">
           <CardHeader className="pb-4">

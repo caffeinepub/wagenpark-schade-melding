@@ -1,11 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  ClipboardCheck,
   ClipboardList,
   LayoutDashboard,
   LogOut,
   Menu,
   Plus,
+  Settings,
   ShieldCheck,
   Truck,
   User,
@@ -25,6 +27,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: "/", icon: <LayoutDashboard size={18} />, label: "Dashboard" },
+  { to: "/rondje", icon: <ClipboardCheck size={18} />, label: "Rondje Melden" },
   { to: "/melden", icon: <Plus size={18} />, label: "Schade Melden" },
   {
     to: "/mijn-meldingen",
@@ -36,6 +39,11 @@ const navItems: NavItem[] = [
     icon: <Truck size={18} />,
     label: "Voertuigen",
     adminOnly: true,
+  },
+  {
+    to: "/beheer",
+    icon: <Settings size={18} />,
+    label: "Beheer",
   },
 ];
 

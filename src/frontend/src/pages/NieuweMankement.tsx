@@ -32,7 +32,7 @@ interface PhotoEntry {
   uploaded?: string;
 }
 
-export function NieuweStoring() {
+export function NieuweMankement() {
   const navigate = useNavigate();
   const addReport = useAddDamageReport();
 
@@ -127,13 +127,13 @@ export function NieuweStoring() {
       const photoIds = photos.length > 0 ? await uploadPhotos() : [];
       await addReport.mutateAsync({
         vehicleId: BigInt(matched.id),
-        damageType: `[STORING] ${damageType}`,
+        damageType: `[MANKEMENT] ${damageType}`,
         description: fullDescription,
         severity,
         locationDescription: location,
         photoIds,
       });
-      toast.success("Storing melding ingediend!");
+      toast.success("Mankement melding ingediend!");
       navigate({ to: "/mijn-meldingen" });
     } catch (err) {
       toast.error("Fout bij indienen melding. Probeer opnieuw.");
@@ -155,7 +155,7 @@ export function NieuweStoring() {
             variant="ghost"
             size="sm"
             onClick={() => navigate({ to: "/" })}
-            data-ocid="storing.back.button"
+            data-ocid="mankement.back.button"
           >
             <ChevronLeft size={16} className="mr-1" />
             Terug
@@ -164,9 +164,9 @@ export function NieuweStoring() {
 
         <Card className="shadow-card border-border">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Nieuwe Storing Voertuig</CardTitle>
+            <CardTitle className="text-xl">Nieuw Mankement</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Vul de gegevens in over de storing van het voertuig
+              Vul de gegevens in over het mankement
             </p>
           </CardHeader>
           <CardContent>
@@ -182,7 +182,7 @@ export function NieuweStoring() {
                   value={tijdstip}
                   onChange={(e) => setTijdstip(e.target.value)}
                   required
-                  data-ocid="storing.tijdstip.input"
+                  data-ocid="mankement.tijdstip.input"
                 />
               </div>
 
@@ -198,7 +198,7 @@ export function NieuweStoring() {
                   onChange={(e) =>
                     setTrekkerKenteken(e.target.value.toUpperCase())
                   }
-                  data-ocid="storing.trekker_kenteken.input"
+                  data-ocid="mankement.trekker_kenteken.input"
                 />
               </div>
 
@@ -212,21 +212,21 @@ export function NieuweStoring() {
                   onChange={(e) =>
                     setAanhangerKenteken(e.target.value.toUpperCase())
                   }
-                  data-ocid="storing.aanhanger_kenteken.input"
+                  data-ocid="mankement.aanhanger_kenteken.input"
                 />
               </div>
 
-              {/* Storing type */}
+              {/* Mankement type */}
               <div className="space-y-2">
                 <Label htmlFor="damageType">
-                  Type Storing <span className="text-destructive">*</span>
+                  Type Mankement <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="damageType"
-                  placeholder="bv. Motorstoring, Remprobleem, Elektrisch..."
+                  placeholder="bv. Verlichting, Banden, Vering, Hydraulica..."
                   value={damageType}
                   onChange={(e) => setDamageType(e.target.value)}
-                  data-ocid="storing.damage_type.input"
+                  data-ocid="mankement.damage_type.input"
                 />
               </div>
 
@@ -237,11 +237,11 @@ export function NieuweStoring() {
                 </Label>
                 <Textarea
                   id="description"
-                  placeholder="Beschrijf de storing zo duidelijk mogelijk..."
+                  placeholder="Beschrijf het mankement zo duidelijk mogelijk..."
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  data-ocid="storing.description.textarea"
+                  data-ocid="mankement.description.textarea"
                 />
               </div>
 
@@ -252,7 +252,7 @@ export function NieuweStoring() {
                     Ernst <span className="text-destructive">*</span>
                   </Label>
                   <Select value={severity} onValueChange={setSeverity}>
-                    <SelectTrigger data-ocid="storing.severity.select">
+                    <SelectTrigger data-ocid="mankement.severity.select">
                       <SelectValue placeholder="Selecteer ernst" />
                     </SelectTrigger>
                     <SelectContent>
@@ -266,10 +266,10 @@ export function NieuweStoring() {
                   <Label htmlFor="location">Locatie Omschrijving</Label>
                   <Input
                     id="location"
-                    placeholder="bv. Motor, Remmen, Dashboard..."
+                    placeholder="bv. Voorkant, Achterkant, Links, Rechts..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    data-ocid="storing.location.input"
+                    data-ocid="mankement.location.input"
                   />
                 </div>
               </div>
@@ -284,7 +284,7 @@ export function NieuweStoring() {
                   onKeyDown={(e) =>
                     e.key === "Enter" && fileInputRef.current?.click()
                   }
-                  data-ocid="storing.photo.dropzone"
+                  data-ocid="mankement.photo.dropzone"
                   disabled={photos.length >= 3}
                 >
                   <ImageIcon
@@ -305,7 +305,7 @@ export function NieuweStoring() {
                     className="hidden"
                     onChange={handleFileChange}
                     disabled={photos.length >= 3}
-                    data-ocid="storing.photo.upload_button"
+                    data-ocid="mankement.photo.upload_button"
                   />
                 </button>
 
@@ -348,7 +348,7 @@ export function NieuweStoring() {
                 type="submit"
                 className="w-full"
                 disabled={uploading || addReport.isPending}
-                data-ocid="storing.submit.submit_button"
+                data-ocid="mankement.submit.submit_button"
               >
                 {(uploading || addReport.isPending) && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
