@@ -22,8 +22,8 @@ import { motion } from "motion/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ExternalBlob } from "../backend";
-import { useAddDamageReport } from "../hooks/useQueries";
-import { getCachedVehicles } from "../utils/vehicleCache";
+import { useAddDamageReport, useAddVehicle } from "../hooks/useQueries";
+import { getCachedVehicles, saveVehicleToCache } from "../utils/vehicleCache";
 
 interface PhotoEntry {
   preview: string;
@@ -35,6 +35,7 @@ interface PhotoEntry {
 export function NieuweSchademelding() {
   const navigate = useNavigate();
   const addReport = useAddDamageReport();
+  const addVehicle = useAddVehicle();
 
   const [tijdstip, setTijdstip] = useState(() => {
     const now = new Date();
@@ -92,6 +93,35 @@ export function NieuweSchademelding() {
     return ids;
   };
 
+  /**
+   * Resolve a vehicleId for the given kenteken.
+   * 1. Check local cache first (fast path).
+   * 2. If not cached, auto-register the vehicle as type "Trekker" so the
+   *    report can always be submitted, even on a fresh device or after a
+   *    redeployment that wiped the backend state.
+   */
+  const resolveVehicleId = async (kenteken: string): Promise<bigint> => {
+    // Try cache first
+    const cached = getCachedVehicles().find(
+      (v) => v.vehicleNumber.toLowerCase() === kenteken.toLowerCase(),
+    );
+    if (cached) {
+      return BigInt(cached.id);
+    }
+
+    // Not in cache → auto-add to backend and cache the returned ID
+    const newId = await addVehicle.mutateAsync({
+      vehicleNumber: kenteken.toUpperCase(),
+      vehicleType: "Trekker",
+    });
+    saveVehicleToCache({
+      id: newId.toString(),
+      vehicleNumber: kenteken.toUpperCase(),
+      vehicleType: "Trekker",
+    });
+    return newId;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -105,18 +135,6 @@ export function NieuweSchademelding() {
       return;
     }
 
-    // Lookup vehicle by kenteken
-    const vehicles = getCachedVehicles();
-    const matched = vehicles.find(
-      (v) => v.vehicleNumber.toLowerCase() === trekkerKenteken.toLowerCase(),
-    );
-    if (!matched) {
-      toast.error(
-        "Trekker kenteken niet gevonden. Vraag een beheerder om dit voertuig toe te voegen.",
-      );
-      return;
-    }
-
     // Prepend tijdstip + aanhanger to description
     let fullDescription = `Tijdstip: ${tijdstip}`;
     if (aanhangerKenteken.trim()) {
@@ -126,9 +144,12 @@ export function NieuweSchademelding() {
 
     setUploading(true);
     try {
+      // Resolve vehicleId — auto-registers the vehicle if needed
+      const vehicleId = await resolveVehicleId(trekkerKenteken);
+
       const photoIds = photos.length > 0 ? await uploadPhotos() : [];
       await addReport.mutateAsync({
-        vehicleId: BigInt(matched.id),
+        vehicleId,
         damageType,
         description: fullDescription,
         severity,
@@ -137,13 +158,39 @@ export function NieuweSchademelding() {
       });
       toast.success("Schademelding ingediend!");
       navigate({ to: "/mijn-meldingen" });
-    } catch (err) {
-      toast.error("Fout bij indienen melding. Probeer opnieuw.");
+    } catch (err: any) {
+      const msg: string =
+        typeof err?.message === "string" ? err.message : String(err ?? "");
+
+      if (
+        msg.toLowerCase().includes("vehicle") ||
+        msg.toLowerCase().includes("voertuig")
+      ) {
+        toast.error(
+          "Voertuig kon niet worden opgeslagen. Ga naar Voertuigen Beheer en voeg het kenteken opnieuw toe.",
+          { duration: 6000 },
+        );
+      } else if (
+        msg.toLowerCase().includes("authorized") ||
+        msg.toLowerCase().includes("not allowed")
+      ) {
+        toast.error(
+          "Je hebt geen toestemming om dit voertuig toe te voegen. Vraag een beheerder om het kenteken eerst toe te voegen via Voertuigen Beheer.",
+          { duration: 8000 },
+        );
+      } else {
+        toast.error(
+          `Fout bij indienen melding: ${msg || "Onbekende fout. Probeer opnieuw."}`,
+          { duration: 6000 },
+        );
+      }
       console.error(err);
     } finally {
       setUploading(false);
     }
   };
+
+  const isBusy = uploading || addReport.isPending || addVehicle.isPending;
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -323,14 +370,14 @@ export function NieuweSchademelding() {
                           alt={`Foto ${idx + 1}`}
                           className="w-full h-full object-cover"
                         />
-                        {uploading && (
+                        {isBusy && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <div className="text-white text-sm font-semibold">
                               {uploadProgress[idx] ?? 0}%
                             </div>
                           </div>
                         )}
-                        {!uploading && (
+                        {!isBusy && (
                           <button
                             type="button"
                             onClick={() => removePhoto(photo.preview)}
@@ -349,12 +396,10 @@ export function NieuweSchademelding() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={uploading || addReport.isPending}
+                disabled={isBusy}
                 data-ocid="melden.submit.submit_button"
               >
-                {(uploading || addReport.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 <Upload size={16} className="mr-2" />
                 Melding Indienen
               </Button>
