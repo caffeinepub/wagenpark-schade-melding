@@ -38,6 +38,44 @@ export type UserRole = { 'admin' : null } |
   { 'guest' : null };
 export interface Vehicle { 'vehicleType' : string, 'vehicleNumber' : string }
 export type VehicleId = bigint;
+export type InspectionId = bigint;
+export interface InspectionItem {
+  'category' : string,
+  'subcategory' : string,
+  'description' : string,
+  'quantity' : [] | [bigint],
+  'photoIds' : Array<string>,
+  'stillPresent' : boolean,
+}
+export interface InspectionRoundInput {
+  'reporterName' : string,
+  'standplaats' : string,
+  'trekkerKenteken' : string,
+  'aanhangerKenteken' : string,
+  'items' : Array<InspectionItem>,
+}
+export interface InspectionRound {
+  'id' : InspectionId,
+  'reporterName' : string,
+  'standplaats' : string,
+  'trekkerKenteken' : string,
+  'aanhangerKenteken' : string,
+  'reportDate' : Time,
+  'reportedBy' : Principal,
+  'items' : Array<InspectionItem>,
+}
+export interface CategoryStat {
+  'category' : string,
+  'standplaats' : string,
+  'count' : bigint,
+  'totalQuantity' : bigint,
+  'month' : string,
+}
+export interface InviteCode {
+  'code' : string,
+  'used' : boolean,
+  'usedBy' : [] | [string],
+}
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -83,6 +121,14 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'removeVehicle' : ActorMethod<[VehicleId], undefined>,
   'updateDamageReportStatus' : ActorMethod<[DamageId, string], undefined>,
+  'addInspectionRound' : ActorMethod<[InspectionRoundInput], InspectionId>,
+  'getAllInspectionRounds' : ActorMethod<[], Array<InspectionRound>>,
+  'getMyInspectionRounds' : ActorMethod<[], Array<InspectionRound>>,
+  'getInspectionRoundsByStandplaats' : ActorMethod<[string], Array<InspectionRound>>,
+  'getInspectionStats' : ActorMethod<[], Array<CategoryStat>>,
+  'generateInviteCode' : ActorMethod<[], string>,
+  'redeemInviteCode' : ActorMethod<[string], undefined>,
+  'getInviteCodes' : ActorMethod<[], Array<InviteCode>>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

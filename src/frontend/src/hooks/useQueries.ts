@@ -225,7 +225,7 @@ export function useAddInspectionRound() {
   const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: InspectionRoundInput) => {
+    mutationFn: async (input: any) => {
       if (!actor) throw new Error("no actor");
       return (actor as any).addInspectionRound(input);
     },

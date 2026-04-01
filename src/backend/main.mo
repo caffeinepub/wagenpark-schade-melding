@@ -119,8 +119,8 @@ actor {
 
   // Vehicle Management (Admin only)
   public shared ({ caller }) func addVehicle(vehicleNumber : Text, vehicleType : Text) : async VehicleId {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can add vehicles");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only employees can add vehicles");
     };
     let vehicle : Vehicle = { vehicleNumber; vehicleType };
     let vehicleId = nextVehicleId;

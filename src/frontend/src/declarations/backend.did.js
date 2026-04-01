@@ -52,6 +52,39 @@ export const Vehicle = IDL.Record({
   'vehicleType' : IDL.Text,
   'vehicleNumber' : IDL.Text,
 });
+export const InspectionId = IDL.Nat;
+export const InspectionItem = IDL.Record({
+  'category' : IDL.Text,
+  'subcategory' : IDL.Text,
+  'description' : IDL.Text,
+  'quantity' : IDL.Opt(IDL.Nat),
+  'photoIds' : IDL.Vec(IDL.Text),
+  'stillPresent' : IDL.Bool,
+});
+export const InspectionRoundInput = IDL.Record({
+  'reporterName' : IDL.Text,
+  'standplaats' : IDL.Text,
+  'trekkerKenteken' : IDL.Text,
+  'aanhangerKenteken' : IDL.Text,
+  'items' : IDL.Vec(InspectionItem),
+});
+export const InspectionRound = IDL.Record({
+  'id' : InspectionId,
+  'reporterName' : IDL.Text,
+  'standplaats' : IDL.Text,
+  'trekkerKenteken' : IDL.Text,
+  'aanhangerKenteken' : IDL.Text,
+  'reportDate' : Time,
+  'reportedBy' : IDL.Principal,
+  'items' : IDL.Vec(InspectionItem),
+});
+export const CategoryStat = IDL.Record({
+  'category' : IDL.Text,
+  'standplaats' : IDL.Text,
+  'count' : IDL.Nat,
+  'totalQuantity' : IDL.Nat,
+  'month' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -114,6 +147,14 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'removeVehicle' : IDL.Func([VehicleId], [], []),
   'updateDamageReportStatus' : IDL.Func([DamageId, IDL.Text], [], []),
+  'addInspectionRound' : IDL.Func([InspectionRoundInput], [InspectionId], []),
+  'getAllInspectionRounds' : IDL.Func([], [IDL.Vec(InspectionRound)], ['query']),
+  'getMyInspectionRounds' : IDL.Func([], [IDL.Vec(InspectionRound)], ['query']),
+  'getInspectionRoundsByStandplaats' : IDL.Func([IDL.Text], [IDL.Vec(InspectionRound)], ['query']),
+  'getInspectionStats' : IDL.Func([], [IDL.Vec(CategoryStat)], ['query']),
+  'generateInviteCode' : IDL.Func([], [IDL.Text], []),
+  'redeemInviteCode' : IDL.Func([IDL.Text], [], []),
+  'getInviteCodes' : IDL.Func([], [IDL.Vec(IDL.Record({ 'code': IDL.Text, 'used': IDL.Bool, 'usedBy': IDL.Opt(IDL.Text) }))], ['query']),
 });
 
 export const idlInitArgs = [];
@@ -163,7 +204,45 @@ export const idlFactory = ({ IDL }) => {
     'vehicleType' : IDL.Text,
     'vehicleNumber' : IDL.Text,
   });
-  
+  const InspectionId = IDL.Nat;
+  const InspectionItem = IDL.Record({
+    'category' : IDL.Text,
+    'subcategory' : IDL.Text,
+    'description' : IDL.Text,
+    'quantity' : IDL.Opt(IDL.Nat),
+    'photoIds' : IDL.Vec(IDL.Text),
+    'stillPresent' : IDL.Bool,
+  });
+  const InspectionRoundInput = IDL.Record({
+    'reporterName' : IDL.Text,
+    'standplaats' : IDL.Text,
+    'trekkerKenteken' : IDL.Text,
+    'aanhangerKenteken' : IDL.Text,
+    'items' : IDL.Vec(InspectionItem),
+  });
+  const InspectionRound = IDL.Record({
+    'id' : InspectionId,
+    'reporterName' : IDL.Text,
+    'standplaats' : IDL.Text,
+    'trekkerKenteken' : IDL.Text,
+    'aanhangerKenteken' : IDL.Text,
+    'reportDate' : Time,
+    'reportedBy' : IDL.Principal,
+    'items' : IDL.Vec(InspectionItem),
+  });
+  const CategoryStat = IDL.Record({
+    'category' : IDL.Text,
+    'standplaats' : IDL.Text,
+    'count' : IDL.Nat,
+    'totalQuantity' : IDL.Nat,
+    'month' : IDL.Text,
+  });
+  const InviteCode = IDL.Record({
+    'code' : IDL.Text,
+    'used' : IDL.Bool,
+    'usedBy' : IDL.Opt(IDL.Text),
+  });
+
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
         [IDL.Vec(IDL.Nat8)],
@@ -229,6 +308,14 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'removeVehicle' : IDL.Func([VehicleId], [], []),
     'updateDamageReportStatus' : IDL.Func([DamageId, IDL.Text], [], []),
+    'addInspectionRound' : IDL.Func([InspectionRoundInput], [InspectionId], []),
+    'getAllInspectionRounds' : IDL.Func([], [IDL.Vec(InspectionRound)], ['query']),
+    'getMyInspectionRounds' : IDL.Func([], [IDL.Vec(InspectionRound)], ['query']),
+    'getInspectionRoundsByStandplaats' : IDL.Func([IDL.Text], [IDL.Vec(InspectionRound)], ['query']),
+    'getInspectionStats' : IDL.Func([], [IDL.Vec(CategoryStat)], ['query']),
+    'generateInviteCode' : IDL.Func([], [IDL.Text], []),
+    'redeemInviteCode' : IDL.Func([IDL.Text], [], []),
+    'getInviteCodes' : IDL.Func([], [IDL.Vec(InviteCode)], ['query']),
   });
 };
 

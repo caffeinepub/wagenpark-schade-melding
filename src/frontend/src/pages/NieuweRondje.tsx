@@ -299,11 +299,13 @@ export function NieuweRondje() {
     }
     setSubmitting(true);
     try {
+      const normTrekker = trekker.toUpperCase().replace(/-/g, "");
+      const normAanhanger = aanhanger.toUpperCase().replace(/-/g, "");
       await addRound.mutateAsync({
         reporterName: melder,
         standplaats,
-        trekkerKenteken: trekker,
-        aanhangerKenteken: aanhanger,
+        trekkerKenteken: normTrekker,
+        aanhangerKenteken: normAanhanger,
         items: [],
       });
       toast.success("Alles in orde geregistreerd!");
@@ -322,7 +324,7 @@ export function NieuweRondje() {
         category: string;
         subcategory: string;
         description: string;
-        quantity: { __kind__: "Some"; value: bigint } | { __kind__: "None" };
+        quantity: [] | [bigint];
         photoIds: string[];
         stillPresent: boolean;
       }> = [];
@@ -340,7 +342,7 @@ export function NieuweRondje() {
               category: "overig",
               subcategory: "",
               description: state.overigDescription,
-              quantity: { __kind__: "None" },
+              quantity: [],
               photoIds,
               stillPresent: state.stillPresent,
             });
@@ -359,11 +361,8 @@ export function NieuweRondje() {
               subcategory: sub,
               description: subState.description,
               quantity: hasQty
-                ? {
-                    __kind__: "Some",
-                    value: BigInt(Math.round(Number(subState.quantity))),
-                  }
-                : { __kind__: "None" },
+                ? [BigInt(Math.round(Number(subState.quantity)))]
+                : [],
               photoIds,
               stillPresent: subState.stillPresent,
             });
@@ -371,11 +370,13 @@ export function NieuweRondje() {
         }
       }
 
+      const normTrekker = trekker.toUpperCase().replace(/-/g, "");
+      const normAanhanger = aanhanger.toUpperCase().replace(/-/g, "");
       await addRound.mutateAsync({
         reporterName: melder,
         standplaats,
-        trekkerKenteken: trekker,
-        aanhangerKenteken: aanhanger,
+        trekkerKenteken: normTrekker,
+        aanhangerKenteken: normAanhanger,
         items,
       });
       toast.success("Rondje opgeslagen!");
@@ -505,7 +506,7 @@ export function NieuweRondje() {
                     </Label>
                     <Input
                       id="trekker"
-                      placeholder="bv. AB-123-C"
+                      placeholder="bv. AB123C (zonder streepjes)"
                       value={trekker}
                       onChange={(e) => setTrekker(e.target.value.toUpperCase())}
                       data-ocid="rondje.trekker.input"
@@ -515,7 +516,7 @@ export function NieuweRondje() {
                     <Label htmlFor="aanhanger">Kenteken Aanhanger</Label>
                     <Input
                       id="aanhanger"
-                      placeholder="bv. AB-123-C (optioneel)"
+                      placeholder="bv. AB123C (zonder streepjes, optioneel)"
                       value={aanhanger}
                       onChange={(e) =>
                         setAanhanger(e.target.value.toUpperCase())

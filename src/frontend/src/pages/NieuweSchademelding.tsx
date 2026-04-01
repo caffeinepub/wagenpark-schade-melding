@@ -100,10 +100,13 @@ export function NieuweSchademelding() {
    *    report can always be submitted, even on a fresh device or after a
    *    redeployment that wiped the backend state.
    */
+  const normalizeKenteken = (k: string) => k.toUpperCase().replace(/-/g, "");
+
   const resolveVehicleId = async (kenteken: string): Promise<bigint> => {
+    const normalized = normalizeKenteken(kenteken);
     // Try cache first
     const cached = getCachedVehicles().find(
-      (v) => v.vehicleNumber.toLowerCase() === kenteken.toLowerCase(),
+      (v) => normalizeKenteken(v.vehicleNumber) === normalized,
     );
     if (cached) {
       return BigInt(cached.id);
@@ -111,12 +114,12 @@ export function NieuweSchademelding() {
 
     // Not in cache → auto-add to backend and cache the returned ID
     const newId = await addVehicle.mutateAsync({
-      vehicleNumber: kenteken.toUpperCase(),
+      vehicleNumber: normalized,
       vehicleType: "Trekker",
     });
     saveVehicleToCache({
       id: newId.toString(),
-      vehicleNumber: kenteken.toUpperCase(),
+      vehicleNumber: normalized,
       vehicleType: "Trekker",
     });
     return newId;
@@ -167,7 +170,7 @@ export function NieuweSchademelding() {
         msg.toLowerCase().includes("voertuig")
       ) {
         toast.error(
-          "Voertuig kon niet worden opgeslagen. Ga naar Voertuigen Beheer en voeg het kenteken opnieuw toe.",
+          "Fout bij opslaan van het voertuig. Controleer het kenteken en probeer opnieuw.",
           { duration: 6000 },
         );
       } else if (
@@ -175,7 +178,7 @@ export function NieuweSchademelding() {
         msg.toLowerCase().includes("not allowed")
       ) {
         toast.error(
-          "Je hebt geen toestemming om dit voertuig toe te voegen. Vraag een beheerder om het kenteken eerst toe te voegen via Voertuigen Beheer.",
+          "Fout bij opslaan. Probeer opnieuw of neem contact op met de beheerder.",
           { duration: 8000 },
         );
       } else {
@@ -242,7 +245,7 @@ export function NieuweSchademelding() {
                 </Label>
                 <Input
                   id="trekkerKenteken"
-                  placeholder="bv. AB-123-C"
+                  placeholder="bv. AB123C (streepjes worden automatisch verwijderd)"
                   value={trekkerKenteken}
                   onChange={(e) =>
                     setTrekkerKenteken(e.target.value.toUpperCase())
@@ -256,7 +259,7 @@ export function NieuweSchademelding() {
                 <Label htmlFor="aanhangerKenteken">Kenteken Aanhanger</Label>
                 <Input
                   id="aanhangerKenteken"
-                  placeholder="bv. AB-123-C"
+                  placeholder="bv. AB123C (optioneel)"
                   value={aanhangerKenteken}
                   onChange={(e) =>
                     setAanhangerKenteken(e.target.value.toUpperCase())

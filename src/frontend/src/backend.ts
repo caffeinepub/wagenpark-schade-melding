@@ -498,6 +498,77 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+
+    async addInspectionRound(arg0: import('./backend.d').InspectionRoundInput): Promise<import('./backend.d').InspectionId> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addInspectionRound(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error('unreachable');
+            }
+        } else {
+            const result = await this.actor.addInspectionRound(arg0);
+            return result;
+        }
+    }
+    async getAllInspectionRounds(): Promise<Array<import('./backend.d').InspectionRound>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllInspectionRounds();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error('unreachable');
+            }
+        } else {
+            const result = await this.actor.getAllInspectionRounds();
+            return result;
+        }
+    }
+    async getMyInspectionRounds(): Promise<Array<import('./backend.d').InspectionRound>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMyInspectionRounds();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error('unreachable');
+            }
+        } else {
+            const result = await this.actor.getMyInspectionRounds();
+            return result;
+        }
+    }
+    async getInspectionRoundsByStandplaats(arg0: string): Promise<Array<import('./backend.d').InspectionRound>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getInspectionRoundsByStandplaats(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error('unreachable');
+            }
+        } else {
+            const result = await this.actor.getInspectionRoundsByStandplaats(arg0);
+            return result;
+        }
+    }
+    async getInspectionStats(): Promise<Array<import('./backend.d').CategoryStat>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getInspectionStats();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error('unreachable');
+            }
+        } else {
+            const result = await this.actor.getInspectionStats();
+            return result;
+        }
+    }
 }
 function from_candid_UserRole_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n11(_uploadFile, _downloadFile, value);
